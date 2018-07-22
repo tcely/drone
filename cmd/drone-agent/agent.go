@@ -25,6 +25,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/djherbis/buffer"
+	"github.com/djherbis/nio"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/metadata"
@@ -274,9 +277,11 @@ func (r *runner) run(ctx context.Context) error {
 
 		loglogger.Debug().Msg("log stream opened")
 
-		limitedPart := io.LimitReader(part, maxLogsUpload)
+		//limitedPart := io.LimitReader(part, maxLogsUpload)
 		logstream := rpc.NewLineWriter(r.client, work.ID, proc.Alias, secrets...)
-		io.Copy(logstream, limitedPart)
+		memBuffer := buffer.New(maxLogsUpload)
+		ringBuffer := buffer.NewRing(memBuffer)
+		nio.Copy(logstream, part, ringBuffer)
 
 		loglogger.Debug().Msg("log stream copied")
 
@@ -312,7 +317,7 @@ func (r *runner) run(ctx context.Context) error {
 			return nil
 		}
 		// TODO should be configurable
-		limitedPart = io.LimitReader(part, maxFileUpload)
+		limitedPart := io.LimitReader(part, maxFileUpload)
 		file = &rpc.File{}
 		file.Mime = part.Header().Get("Content-Type")
 		file.Proc = proc.Alias
