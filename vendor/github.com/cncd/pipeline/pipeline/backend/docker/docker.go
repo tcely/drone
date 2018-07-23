@@ -160,7 +160,6 @@ func (e *engine) Tail(ctx context.Context, proc *backend.Step) (io.ReadCloser, e
 		stdcopy.StdCopy(wc, wc, logs)
 		logs.Close()
 		wc.Close()
-		rc.Close()
 	}()
 	return rc, nil
 }
