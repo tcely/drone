@@ -25,9 +25,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/djherbis/buffer"
-	"github.com/djherbis/nio"
-
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/metadata"
@@ -285,9 +282,9 @@ func (r *runner) run(ctx context.Context) error {
 		// maxLogsUpload is now more accurate
 		// We want the end of the logs, not the beginning
 		logLines := logstream.Lines()
-		fileData := json.Marshal(logLines)
+		fileData, _ := json.Marshal(logLines)
 		for firstLine := 1; len(fileData) > maxLogsUpload; firstLine++ {
-			fileData = json.Marshal(logLines[firstLine:])
+			fileData, _ = json.Marshal(logLines[firstLine:])
 		}
 
 		file := &rpc.File{}
